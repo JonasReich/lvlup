@@ -3,7 +3,7 @@ lvlup game for Matze
 
 ![](Docs/screenshot.png)
 
-Modify xpSteps.json in ```lvlup_Data/Resources/``` (either in the Project or the build) to change the distribution of XP/levels.
+Modify xpSteps.json in ```lvlup_Data/Resources/``` to change the distribution of XP/levels.
 ```json
 {
   "levelSteps": [
