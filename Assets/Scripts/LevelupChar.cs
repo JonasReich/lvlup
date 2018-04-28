@@ -28,13 +28,25 @@ public class LevelupChar : MonoBehaviour
 	public Text XpBarProgressLabel;
 	public Text LevelText;
 
+	// time the bar needs for a whole level
+	public float xpChangeDurationPerLevel;
+
+	public float levelPlopAnimationDuration;
+	[Range(1,4)]
+	public float levelUpPlopFontSizeMultiplier;
+
+
 	TextAsset xpStepsJsonTextAsset;
 	public XpSteps xpSteps;
 	List<Sprite> characterImages = new List<Sprite>();
-
-
+	
 	int level;
+
 	float xp;
+	float xpTarget;
+
+	// used for level up animation
+	float levelUpTime = -3000;
 
 	void Awake()
 	{
@@ -42,10 +54,9 @@ public class LevelupChar : MonoBehaviour
 		xpStepsJsonTextAsset = Resources.Load<TextAsset>("xpSteps");
 		xpSteps = JsonUtility.FromJson<XpSteps>(xpStepsJsonTextAsset.text);
 		
-		string resourcesPath = System.IO.Path.Combine(Application.dataPath, "Resources");
+		string resourcesPath = Path.Combine(Application.dataPath, "Resources");
 		foreach (LevelStep step in xpSteps.levelSteps)
 			characterImages.Add(LoadNewSprite(Path.Combine(resourcesPath, step.imageName)));
-		//characterImages.Add(Resources.Load<Sprite>(step.imageName));
 	}
 
 	void Start()
@@ -56,33 +67,66 @@ public class LevelupChar : MonoBehaviour
 		DisplayLevelUp();
 	}
 
+	void Update()
+	{
+		float xpDelta = xpTarget - xp;
+		if (xpDelta > 0)
+		{
+			float levelStepXp = CurrentLevelStepXp();
+			
+			//xp_t += Time.deltaTime / xpChangeDuration;
+			//float frameXpTarget = Mathf.Lerp(previousXp, xpTarget, xp_t);
+			xpDelta = Mathf.Clamp(xpDelta, 0, xpChangeDurationPerLevel * Time.deltaTime * levelStepXp);
+			RaiseXP(xpDelta);
+		}
+
+		float timeSinceLevelUp = Time.time - levelUpTime;
+		if (timeSinceLevelUp <= levelPlopAnimationDuration)
+		{
+			float scale = Mathf.Clamp(1f + (levelUpPlopFontSizeMultiplier-1f) * PlopFunc(timeSinceLevelUp / levelPlopAnimationDuration), 1f, 4f);
+			LevelText.transform.localScale = new Vector3(scale, scale, scale);
+		}
+	}
+
 	void HandleOnXpButtonClicked()
 	{
-		RaiseXP(float.Parse(XpInputField.text));
-		XpInputField.text = "";
+		if (XpInputField.text != "")
+		{
+			xpTarget += float.Parse(XpInputField.text);
+			XpInputField.text = "";
+		}
 	}
 
 	void RaiseXP(float xpDelta)
 	{
-		// TOOD add interpolated raise xp ui animation
 		xp += xpDelta;
 
-		float requiredXp = GetRequiredXp();
+		float levelStepXp = CurrentLevelStepXp();
 
-		while (requiredXp > 0 && xp >= requiredXp)
+		while (levelStepXp > 0 && xp >= levelStepXp)
 		{
 			// Level Up
-			xp -= requiredXp;
+			xp -= levelStepXp;
+			xpTarget -= levelStepXp;
 			level++;
 			DisplayLevelUp();
-			requiredXp = GetRequiredXp();
+			levelStepXp = CurrentLevelStepXp();
+			levelUpTime = Time.time;
 		}
 
-		XpProgressBar.fillAmount = requiredXp > 0 ? xp / requiredXp : 1f;
-		XpBarProgressLabel.text = xp + " / " + requiredXp + " XP";
+		if (levelStepXp > 0)
+		{
+			XpProgressBar.fillAmount = xp / levelStepXp;
+			XpBarProgressLabel.text = (int) xp + " / " + (int) levelStepXp + " XP";
+		}
+		else
+		{
+			XpProgressBar.fillAmount = 1;
+			XpBarProgressLabel.text = "MAX LEVEL";
+		}
 	}
 
-	float GetRequiredXp()
+	float CurrentLevelStepXp()
 	{
 		int nextLevel = level + 1;
 		if (xpSteps.levelSteps.Count <= nextLevel)
@@ -93,14 +137,17 @@ public class LevelupChar : MonoBehaviour
 	void DisplayLevelUp()
 	{
 		// TOOD add interpolated level up ui animation
-		LevelText.text = "LEVEL " + level;
+		LevelText.text = "LEVEL " + (level + 1);
 		if (characterImages.Count > level)
 		{
 			CharacterImage.sprite = characterImages[level];
 		}
 	}
 
-
+	public float PlopFunc(float x)
+	{
+		return -Mathf.Pow((x * 2 - 1),2) + 1;
+	}
 
 
 	public static Sprite LoadNewSprite(string FilePath, float PixelsPerUnit = 100.0f, SpriteMeshType spriteType = SpriteMeshType.Tight)

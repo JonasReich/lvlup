@@ -214,6 +214,9 @@ MonoBehaviour:
   XpProgressBar: {fileID: 1939329182}
   XpBarProgressLabel: {fileID: 920173138}
   LevelText: {fileID: 1277715948}
+  xpChangeDurationPerLevel: 1
+  levelPlopAnimationDuration: 1
+  levelUpPlopFontSizeMultiplier: 1.2
   xpSteps:
     levelSteps: []
 --- !u!4 &683586416
