@@ -1,0 +1,28 @@
+{
+  "levelSteps": [
+    {
+      "xp": 0,
+      "imageName": "lvl01_green.png"
+    },
+    {
+      "xp": 5,
+      "imageName": "lvl02_blue.png"
+    },
+    {
+      "xp": 20,
+      "imageName": "lvl03_red.png"
+    },
+    {
+      "xp": 50,
+      "imageName": "lvl04_purple.png"
+    },
+    {
+      "xp": 100,
+      "imageName": "lvl05_silver.png"
+    },
+    {
+      "xp": 300,
+      "imageName": "lvl06_gold.png"
+    }
+  ]
+}
